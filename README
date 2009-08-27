@@ -1,0 +1,20 @@
+== JsonMatchers
+
+This is a custom matcher class for rspec and a few cucumber steps to help validate
+JSON responses from a Ruby on Rails application.
+
+To use this, copy json_matchers.rb into your #{RAILS_ROOT}/spec, and copy json_steps.rb
+into #{RAILS_ROOT}/features/step_definitions.  Then in your cucumber, you can do such
+
+Then I should see the following JSON
+ | column | column2 |
+ | value  | value2  |
+
+Then I should not see the following JSON
+ | column | column2 |
+ | value  | value2  |
+
+== TODO
+
+turn this into a gem
+
