@@ -5,7 +5,7 @@ module JsonMatchers
     end
     
     def matches?(hash)
-      @hash = hash
+      @hash = hash.inject({}) {|memo, (k,v)| memo[k] = fix_type(v); memo }
       hash_scan(@json, @hash)
     end
     
@@ -19,19 +19,30 @@ module JsonMatchers
     
     def hash_scan(source, match)
       if source.class == Array
-        result = source.map{ |item| hash_scan(item, match) }.include?(true)
+        source.map{ |item| hash_scan(item, match) }.include?(true)
       elsif source.class == Hash
         if match.keys.detect{ |key| source.has_key?(key.to_s) }
           # TODO : clean this up. There has to be some magic ruby Hash method to reduce this
+          # TODO : better sorting
           keys = match.keys.map(&:to_s).sort
-          source_values = source.select{|k,v| keys.include?(k)}.flatten.delete_if{|i|keys.include?(i)}
+          source_values = source.select{|k,v| keys.include?(k)}.sort.flatten.delete_if{|i|keys.include?(i)}
           match_values = match.values
-          result = (source_values == match_values)
+          source_values.sort!{|a,b| a.to_s <=> b.to_s}
+          match_values.sort!{|a,b| a.to_s <=> b.to_s}
+          true & (source_values == match_values)
         else
-          result = source.map{ |key,val| hash_scan(val, match) if val.class == Hash }.include?(true)
+          source.map{ |key,val| hash_scan(val, match) if val.class == Hash }.include?(true)
         end
       end
-      result # yeah, it's unnecessary but helpful to figure out what's happening
+    end
+    
+    def fix_type(val)
+      case val
+        when val.to_i.to_s then val.to_i
+        when "true" then true
+        when "false" then false
+        else val
+      end
     end
   end
   
